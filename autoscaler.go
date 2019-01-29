@@ -68,14 +68,16 @@ func (a *OpenstackASG) parseFlags() error {
 		InstanceGroups: instanceGroups,
 		Phase:          cloudup.PhaseCluster,
 		TargetName:     cloudup.TargetDryRun,
+		OutDir:         "out",
+		Models:         []string{"proto", "cloudup"},
 	}
 	return nil
 }
 
 func (a *OpenstackASG) loopUntil() {
 	for {
-                // TODO make this configurable
-                time.Sleep(60 * time.Second)
+		// TODO make this configurable
+		time.Sleep(10 * time.Second)
 		update, err := a.dryRun()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v\n", err)
@@ -95,14 +97,15 @@ func (a *OpenstackASG) dryRun() (bool, error) {
 	a.ApplyCmd.TargetName = cloudup.TargetDryRun
 	a.ApplyCmd.DryRun = true
 	needsCreate := false
+
 	if err := a.ApplyCmd.Run(); err != nil {
 		return needsCreate, err
 	}
 	target := a.ApplyCmd.Target.(*fi.DryRunTarget)
 	if target.HasChanges() {
-		for k, _ := range a.ApplyCmd.TaskMap {
+		for k, v := range a.ApplyCmd.TaskMap {
 			if strings.HasPrefix(k, "Instance/") {
-				glog.Infof("Found foo instance in tasks: %s running update --yes\n", k)
+				glog.Infof("Found instance in tasks: %s running update --yes %+v\n", k, v)
 				return true, nil
 			} 
 		}
