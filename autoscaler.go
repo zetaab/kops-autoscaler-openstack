@@ -11,13 +11,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kops/pkg/apis/kops"
 	"k8s.io/kops/util/pkg/vfs"
+	"k8s.io/kops/pkg/client/simple"
 	"k8s.io/kops/pkg/client/simple/vfsclientset"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/cloudup"
 )
 
 type OpenstackASG struct {
-	ApplyCmd       *cloudup.ApplyClusterCmd
+	ApplyCmd    *cloudup.ApplyClusterCmd
+	clientset   simple.Clientset
+	clusterName string
 }
 
 var flagRegistryBase = flag.String("registry", os.Getenv("KOPS_STATE_STORE"), "VFS path where files are kept")
@@ -49,12 +52,23 @@ func (a *OpenstackASG) parseFlags() error {
 	}
 
 	clientset := vfsclientset.NewVFSClientset(registryBase, true)
-	cluster, err := clientset.GetCluster(clusterName)
+
+	a.clientset = clientset
+	a.clusterName = clusterName
+	err = a.updateApplyCmd()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *OpenstackASG) updateApplyCmd() error {
+	cluster, err := a.clientset.GetCluster(a.clusterName)
 	if err != nil {
 		return fmt.Errorf("error initializing cluster %v", err)
 	}
 
-	list, err := clientset.InstanceGroupsFor(cluster).List(metav1.ListOptions{})
+	list, err := a.clientset.InstanceGroupsFor(cluster).List(metav1.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -62,8 +76,9 @@ func (a *OpenstackASG) parseFlags() error {
 	for i := range list.Items {
 		instanceGroups = append(instanceGroups, &list.Items[i])
 	}
+
 	a.ApplyCmd = &cloudup.ApplyClusterCmd{
-		Clientset:      clientset,
+		Clientset:      a.clientset,
 		Cluster:        cluster,
 		InstanceGroups: instanceGroups,
 		Phase:          cloudup.PhaseCluster,
@@ -77,7 +92,13 @@ func (a *OpenstackASG) parseFlags() error {
 func (a *OpenstackASG) loopUntil() {
 	for {
 		// TODO make this configurable
-		time.Sleep(10 * time.Second)
+		time.Sleep(60 * time.Second)
+		glog.Infof("Executing...\n")
+		err := a.updateApplyCmd()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			continue
+		}
 		update, err := a.dryRun()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v\n", err)
@@ -93,6 +114,15 @@ func (a *OpenstackASG) loopUntil() {
 	}
 }
 
+func getTaskName(t fi.Task) string {
+	s := fmt.Sprintf("%T", t)
+	lastDot := strings.LastIndexByte(s, '.')
+	if lastDot != -1 {
+		s = s[lastDot+1:]
+	}
+	return s
+}
+
 func (a *OpenstackASG) dryRun() (bool, error) {
 	a.ApplyCmd.TargetName = cloudup.TargetDryRun
 	a.ApplyCmd.DryRun = true
@@ -103,11 +133,11 @@ func (a *OpenstackASG) dryRun() (bool, error) {
 	}
 	target := a.ApplyCmd.Target.(*fi.DryRunTarget)
 	if target.HasChanges() {
-		for k, v := range a.ApplyCmd.TaskMap {
-			if strings.HasPrefix(k, "Instance/") {
-				glog.Infof("Found instance in tasks: %s running update --yes %+v\n", k, v)
+		for _, r := range target.Changes() {
+			if strings.HasPrefix(getTaskName(r), "Instance") {
+				glog.Infof("Found instance in tasks running update --yes\n")
 				return true, nil
-			} 
+			}
 		}
 	}
 	return needsCreate, nil
