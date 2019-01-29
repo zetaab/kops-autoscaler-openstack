@@ -92,6 +92,8 @@ func (a *OpenstackASG) loopUntil() {
 }
 
 func (a *OpenstackASG) dryRun() (bool, error) {
+	a.ApplyCmd.TargetName = cloudup.TargetDryRun
+	a.ApplyCmd.DryRun = true
 	needsCreate := false
 	if err := a.ApplyCmd.Run(); err != nil {
 		return needsCreate, err
