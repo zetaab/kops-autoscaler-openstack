@@ -74,6 +74,8 @@ func (a *OpenstackASG) parseFlags() error {
 
 func (a *OpenstackASG) loopUntil() {
 	for {
+                // TODO make this configurable
+                time.Sleep(60 * time.Second)
 		update, err := a.dryRun()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v\n", err)
@@ -86,8 +88,6 @@ func (a *OpenstackASG) loopUntil() {
 				continue
 			}
 		}
-		// TODO make this configurable
-		time.Sleep(60 * time.Second)
 	}
 }
 
