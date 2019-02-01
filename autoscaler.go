@@ -114,15 +114,6 @@ func (a *OpenstackASG) loopUntil() {
 	}
 }
 
-func getTaskName(t fi.Task) string {
-	s := fmt.Sprintf("%T", t)
-	lastDot := strings.LastIndexByte(s, '.')
-	if lastDot != -1 {
-		s = s[lastDot+1:]
-	}
-	return s
-}
-
 func (a *OpenstackASG) dryRun() (bool, error) {
 	a.ApplyCmd.TargetName = cloudup.TargetDryRun
 	a.ApplyCmd.DryRun = true
@@ -134,7 +125,7 @@ func (a *OpenstackASG) dryRun() (bool, error) {
 	target := a.ApplyCmd.Target.(*fi.DryRunTarget)
 	if target.HasChanges() {
 		for _, r := range target.Changes() {
-			if strings.HasPrefix(getTaskName(r), "Instance") {
+			if strings.HasPrefix(r, "Instance") {
 				glog.Infof("Found instance in tasks running update --yes\n")
 				return true, nil
 			}
