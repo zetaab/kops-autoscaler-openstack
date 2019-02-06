@@ -2,7 +2,7 @@ package autoscaler
 
 import (
 	"fmt"
-	"strings"
+	//"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -39,7 +39,7 @@ func Run(opts *Options) error {
 	}
 
 	clientset := vfsclientset.NewVFSClientset(registryBase, true)
-	osASG := &OpenstackASG{
+	osASG := &openstackASG{
 		opts:      opts,
 		clientset: clientset,
 	}
@@ -69,7 +69,7 @@ func Run(opts *Options) error {
 	return nil
 }
 
-func (osASG *OpenstackASG) updateApplyCmd() error {
+func (osASG *openstackASG) updateApplyCmd() error {
 	cluster, err := osASG.clientset.GetCluster(osASG.opts.ClusterName)
 	if err != nil {
 		return fmt.Errorf("error initializing cluster %v", err)
@@ -96,7 +96,7 @@ func (osASG *OpenstackASG) updateApplyCmd() error {
 	return nil
 }
 
-func (osASG *OpenstackASG) dryRun() (bool, error) {
+func (osASG *openstackASG) dryRun() (bool, error) {
 	osASG.ApplyCmd.TargetName = cloudup.TargetDryRun
 	osASG.ApplyCmd.DryRun = true
 
@@ -105,17 +105,18 @@ func (osASG *OpenstackASG) dryRun() (bool, error) {
 	}
 	target := osASG.ApplyCmd.Target.(*fi.DryRunTarget)
 	if target.HasChanges() {
-		for _, r := range target.Changes() {
+		// This does not work yet, waiting for PR to be approved
+		/*for _, r := range target.Changes() {
 			if strings.HasPrefix(r, "Instance") {
 				glog.Infof("Found instance in tasks running update --yes\n")
 				return true, nil
 			}
-		}
+		}*/
 	}
 	return false, nil
 }
 
-func (osASG *OpenstackASG) update() error {
+func (osASG *openstackASG) update() error {
 	osASG.ApplyCmd.TargetName = cloudup.TargetDirect
 	osASG.ApplyCmd.DryRun = false
 	var options fi.RunTasksOptions

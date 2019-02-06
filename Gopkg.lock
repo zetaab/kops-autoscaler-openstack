@@ -1124,7 +1124,7 @@
   version = "kubernetes-1.12.3"
 
 [[projects]]
-  digest = "1:64b0df6779093187709a380cdc210a339025f1dabfd7c302935b67f749ad2b1e"
+  digest = "1:4e441dc210af9011420c7d9d7a06ec45166b7fbbe245840528fa1db30a1ecea1"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -1256,8 +1256,8 @@
     "util/retry",
   ]
   pruneopts = "UT"
-  revision = "d082d5923d3cc0bfbb066ee5fbdea3d0ca79acf8"
-  version = "kubernetes-1.12.3"
+  revision = "701b913670036511e3d752318272c97f1a2a2edd"
+  version = "kubernetes-1.12.5"
 
 [[projects]]
   digest = "1:4e2addcdbe0330f43800c1fcb905fc7a21b86415dfcca619e5c606c87257af1b"
@@ -1520,12 +1520,17 @@
     "github.com/kubernetes-incubator/apiserver-builder/cmd/apiserver-boot",
     "github.com/kubernetes-incubator/reference-docs/gen-apidocs",
     "github.com/spf13/cobra",
+    "k8s.io/apimachinery/pkg/apis/meta/v1",
+    "k8s.io/client-go/tools/watch",
     "k8s.io/code-generator/cmd/client-gen",
     "k8s.io/code-generator/cmd/conversion-gen",
     "k8s.io/code-generator/cmd/deepcopy-gen",
     "k8s.io/code-generator/cmd/defaulter-gen",
     "k8s.io/code-generator/cmd/openapi-gen",
+    "k8s.io/kops/pkg/apis/kops",
     "k8s.io/kops/pkg/client/simple",
+    "k8s.io/kops/pkg/client/simple/vfsclientset",
+    "k8s.io/kops/upup/pkg/fi",
     "k8s.io/kops/upup/pkg/fi/cloudup",
     "k8s.io/kops/util/pkg/vfs",
   ]
