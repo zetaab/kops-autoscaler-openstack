@@ -11,6 +11,7 @@ import (
 	"github.com/zetaab/kops-autoscaler-openstack/pkg/autoscaler"
 )
 
+// Execute will execute basically the whole application
 func Execute() {
 	options := &autoscaler.Options{}
 	flag.Lookup("logtostderr").Value.Set("true")

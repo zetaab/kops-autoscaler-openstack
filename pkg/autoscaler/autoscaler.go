@@ -15,6 +15,7 @@ import (
 	"k8s.io/kops/util/pkg/vfs"
 )
 
+// Options contains startup variables from cobra cmd
 type Options struct {
 	Sleep          int
 	StateStore     string
@@ -24,12 +25,13 @@ type Options struct {
 	ClusterName    string
 }
 
-type OpenstackASG struct {
+type openstackASG struct {
 	ApplyCmd  *cloudup.ApplyClusterCmd
 	clientset simple.Clientset
 	opts      *Options
 }
 
+// Run will execute cluster check in loop periodically
 func Run(opts *Options) error {
 	registryBase, err := vfs.Context.BuildVfsPath(opts.StateStore)
 	if err != nil {
