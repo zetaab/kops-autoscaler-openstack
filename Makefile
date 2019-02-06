@@ -6,6 +6,7 @@ test:
 	golint -set_exit_status pkg/...
 	golint -set_exit_status cmd/...
 	./.gofmt.sh
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -i -o $(BINARY_NAME) ./cmd
 
 build_linux_amd64:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -i -o $(BINARY_NAME) ./cmd
